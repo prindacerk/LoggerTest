@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon;
+using Amazon.CloudWatchLogs;
 using Amazon.Runtime;
 using AWS.Logger;
+using AWS.Logger.SeriLog;
+using LoggerTest.Formatters;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Formatting.Json;
+using Serilog.Sinks.AwsCloudWatch;
 
 namespace LoggerTest
 {
@@ -24,13 +31,35 @@ namespace LoggerTest
 
         public static void Main(string[] args)
         {
-            //configuration.Credentials = new BasicAWSCredentials("", "");
-
             // Add Logger services
-            Log.Logger = new LoggerConfiguration()
+            var loggerConfig = new LoggerConfiguration()
                 .ReadFrom.Configuration(Configuration)
-                .Enrich.FromLogContext()
-                .CreateLogger();
+                .Enrich.FromLogContext();
+
+            var config = new AmazonCloudWatchLogsConfig()
+            {
+                
+            };
+
+            loggerConfig = loggerConfig
+                .WriteTo.AmazonCloudWatch(
+                    new CloudWatchSinkOptions
+                    {
+                        LogGroupName = Configuration["Serilog:AmazonContext:LogGroup"],
+                        TextFormatter = new AwsTextFormatter(),
+                        CreateLogGroup = true,
+
+                    },
+                    new AmazonCloudWatchLogsClient(
+                        new BasicAWSCredentials(
+                            Configuration["Serilog:AmazonContext:Key"],
+                            Configuration["Serilog:AmazonContext:Secret"]
+                        ),
+                        RegionEndpoint.GetBySystemName(Configuration["Serilog:AmazonContext:Region"])
+                    )
+                );
+
+            Log.Logger = loggerConfig.CreateLogger();
 
             try
             {
