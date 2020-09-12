@@ -18,7 +18,7 @@ namespace LoggerTest.Filters
             context.HttpContext.Response.StatusCode = (int)HttpStatusCode.PreconditionFailed;
             context.Result = new JsonResult(new
             {
-                Content = new StringContent(context.Exception.Message),
+                Content = context.Exception.Message,
                 ReasonPhrase = "Parameter(s) incorrect",
             });
         }

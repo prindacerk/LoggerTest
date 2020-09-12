@@ -15,7 +15,7 @@ namespace LoggerTest.Filters
             context.HttpContext.Response.StatusCode = (int)HttpStatusCode.NotImplemented;
             context.Result = new JsonResult(new
             {
-                Content = new StringContent("This feature has not yet been implemented to completion."),
+                Content = "This feature has not yet been implemented to completion.",
                 ReasonPhrase = "Implementation not complete",
             });
         }
